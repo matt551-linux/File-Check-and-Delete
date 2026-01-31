@@ -5,16 +5,7 @@
 #    that exist in Folder A.
 # ============================================
 
-$A="C:\path-to\original\folder"
-$B="C:\path-to\new\folder-to-be-deleted-from"
-
-Get-ChildItem -Path $A -Recurse | ForEach-Object {
-    $rel = $_.FullName.Substring($A.Length).TrimStart('\')
-    $name = $_.Name
-    Select-String -Path (Get-ChildItem $B -Recurse -File).FullName `
-        -Pattern $rel,$name -SimpleMatch -ErrorAction SilentlyContinue |
-        Select-Object Path,Line,Pattern
-}
+$A="C:\tc-local-code\starter\static\uploads";$B="C:\tc-local-code\joseph-or\static\uploads";Get-ChildItem -Path $A -Recurse | ForEach-Object{$rel=$_.FullName.Substring($A.Length).TrimStart('\');$name=$_.Name;Select-String -Path (Get-ChildItem $B -Recurse -File).FullName -Pattern $rel,$name -SimpleMatch -ErrorAction SilentlyContinue | Select-Object Path,Line,Pattern}
 
 # ============================================
 # 2) DRY RUN
@@ -22,16 +13,7 @@ Get-ChildItem -Path $A -Recurse | ForEach-Object {
 #    based on matching relative paths in A.
 # ============================================
 
-$A="C:\path-to\original\folder"
-$B="C:\path-to\new\folder-to-be-deleted-from"
-
-Get-ChildItem -Path $A -Recurse | ForEach-Object {
-    $r = $_.FullName.Substring($A.Length)
-    $t = Join-Path $B $r
-    if (Test-Path $t) {
-        Write-Output $t
-    }
-}
+$A="C:\tc-local-code\starter\static\uploads";$B="C:\tc-local-code\joseph-or\static\uploads";Get-ChildItem -Path $A -Recurse|ForEach-Object{$r=$_.FullName.Substring($A.Length);$t=Join-Path $B $r;if(Test-Path $t){Write-Output $t}}
 
 # ============================================
 # 3) LIVE DELETE
@@ -39,13 +21,4 @@ Get-ChildItem -Path $A -Recurse | ForEach-Object {
 #    in Folder A (matching relative paths).
 # ============================================
 
-$A="C:\path-to\original\folder"
-$B="C:\path-to\new\folder-to-be-deleted-from"
-
-Get-ChildItem -Path $A -Recurse | ForEach-Object {
-    $r = $_.FullName.Substring($A.Length)
-    $t = Join-Path $B $r
-    if (Test-Path $t) {
-        Remove-Item $t -Force -Recurse
-    }
-}
+$A="C:\tc-local-code\starter\static\uploads";$B="C:\tc-local-code\joseph-or\static\uploads";Get-ChildItem -Path $A -Recurse|ForEach-Object{$r=$_.FullName.Substring($A.Length);$t=Join-Path $B $r;if(Test-Path $t){Remove-Item $t -Force -Recurse}}
