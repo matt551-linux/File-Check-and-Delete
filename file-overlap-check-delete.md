@@ -1,24 +1,43 @@
-# ============================================
-# 1) RECURSIVE REFERENCE CHECK
-#    Checks if ANY file in Folder B references
-#    the relative paths OR filenames of files
-#    that exist in Folder A.
-# ============================================
+# File overlap check + optional delete (cross-platform PowerShell CLI)
 
-$A="C:\tc-local-code\starter\static\uploads";$B="C:\tc-local-code\joseph-or\static\uploads";Get-ChildItem -Path $A -Recurse | ForEach-Object{$rel=$_.FullName.Substring($A.Length).TrimStart('\');$name=$_.Name;Select-String -Path (Get-ChildItem $B -Recurse -File).FullName -Pattern $rel,$name -SimpleMatch -ErrorAction SilentlyContinue | Select-Object Path,Line,Pattern}
+This tool compares files recursively by **relative path**:
 
-# ============================================
-# 2) DRY RUN
-#    Shows what WOULD be deleted from Folder B
-#    based on matching relative paths in A.
-# ============================================
+- `FolderA` = reference/source folder.
+- `FolderB` = folder checked for overlaps (and optionally deleted from).
 
-$A="C:\tc-local-code\starter\static\uploads";$B="C:\tc-local-code\joseph-or\static\uploads";Get-ChildItem -Path $A -Recurse|ForEach-Object{$r=$_.FullName.Substring($A.Length);$t=Join-Path $B $r;if(Test-Path $t){Write-Output $t}}
+If a file exists in both folders at the same relative path, it is a match.
 
-# ============================================
-# 3) LIVE DELETE
-#    Removes from Folder B anything that exists
-#    in Folder A (matching relative paths).
-# ============================================
+## Script
 
-$A="C:\tc-local-code\starter\static\uploads";$B="C:\tc-local-code\joseph-or\static\uploads";Get-ChildItem -Path $A -Recurse|ForEach-Object{$r=$_.FullName.Substring($A.Length);$t=Join-Path $B $r;if(Test-Path $t){Remove-Item $t -Force -Recurse}}
+`file-overlap-check-delete.ps1`
+
+## Requirements
+
+- Windows: PowerShell 5.1+ or PowerShell 7+
+- macOS / Linux: PowerShell 7+ (`pwsh`)
+
+## Interactive CLI mode (default)
+
+Run the script with no arguments and it will prompt for:
+
+1. `FolderA`
+2. `FolderB`
+3. Whether to run reference check
+4. Whether to delete matches
+5. Final `YES` confirmation before deletion
+
+```powershell
+./file-overlap-check-delete.ps1
+```
+
+## Optional non-interactive usage
+
+You can still run it with explicit arguments:
+
+```powershell
+./file-overlap-check-delete.ps1 -FolderA "./starter/static/uploads" -FolderB "./joseph-or/static/uploads"
+./file-overlap-check-delete.ps1 -FolderA "./starter/static/uploads" -FolderB "./joseph-or/static/uploads" -ReferenceCheck
+./file-overlap-check-delete.ps1 -FolderA "./starter/static/uploads" -FolderB "./joseph-or/static/uploads" -Delete
+```
+
+To skip prompt questions entirely (for automation), add `-NonInteractive` with explicit folder paths.
