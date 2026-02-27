@@ -10,42 +10,11 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Normalize-InputPathString {
-    param([Parameter(Mandatory = $true)][string]$Path)
-
-    return $Path.Trim().Trim('"', "'")
-}
-
 function Resolve-NormalizedPath {
     param([Parameter(Mandatory = $true)][string]$Path)
 
-    $cleanPath = Normalize-InputPathString -Path $Path
-    $resolved = Resolve-Path -LiteralPath $cleanPath
+    $resolved = Resolve-Path -LiteralPath $Path
     return [System.IO.Path]::GetFullPath($resolved.Path)
-}
-
-function Get-RelativePathCompat {
-    param(
-        [Parameter(Mandatory = $true)][string]$BasePath,
-        [Parameter(Mandatory = $true)][string]$TargetPath
-    )
-
-    if ([System.IO.Path].GetMethod('GetRelativePath', [Type[]]@([string], [string])) -ne $null) {
-        return [System.IO.Path]::GetRelativePath($BasePath, $TargetPath)
-    }
-
-    $baseWithSeparator = if ($BasePath.EndsWith([System.IO.Path]::DirectorySeparatorChar) -or $BasePath.EndsWith([System.IO.Path]::AltDirectorySeparatorChar)) {
-        $BasePath
-    }
-    else {
-        $BasePath + [System.IO.Path]::DirectorySeparatorChar
-    }
-
-    $baseUri = [System.Uri]::new($baseWithSeparator)
-    $targetUri = [System.Uri]::new($TargetPath)
-    $relativeUri = $baseUri.MakeRelativeUri($targetUri)
-
-    return [System.Uri]::UnescapeDataString($relativeUri.ToString()).Replace('/', [System.IO.Path]::DirectorySeparatorChar)
 }
 
 function Prompt-ForDirectory {
@@ -108,7 +77,7 @@ function Get-RelativeMatches {
 
     Get-ChildItem -LiteralPath $SourceRoot -Recurse -File | ForEach-Object {
         $sourcePath = $_.FullName
-        $relativePath = Get-RelativePathCompat -BasePath $SourceRoot -TargetPath $sourcePath
+        $relativePath = [System.IO.Path]::GetRelativePath($SourceRoot, $sourcePath)
         $targetPath = Join-Path -Path $TargetRoot -ChildPath $relativePath
 
         if (Test-Path -LiteralPath $targetPath -PathType Leaf) {
@@ -156,7 +125,7 @@ if (-not (Test-Path -LiteralPath $folderBPath -PathType Container)) {
 
 $relativeMatches = Get-RelativeMatches -SourceRoot $folderAPath -TargetRoot $folderBPath
 
-Write-Host "`nFound $($relativeMatches.Count) matching file(s) in FolderB based on FolderA relative paths."
+Write-Host "\nFound $($relativeMatches.Count) matching file(s) in FolderB based on FolderA relative paths."
 
 if ($relativeMatches.Count -eq 0) {
     return
@@ -167,7 +136,7 @@ $relativeMatches | Select-Object RelativePath, TargetPath | Format-Table -AutoSi
 if ($ReferenceCheck) {
     $filesInB = Get-ChildItem -LiteralPath $folderBPath -Recurse -File
 
-    Write-Host "`nReference check results (files in FolderB containing matched relative paths or file names):"
+    Write-Host "\nReference check results (files in FolderB containing matched relative paths or file names):"
 
     foreach ($match in $relativeMatches) {
         $patterns = @($match.RelativePath, [System.IO.Path]::GetFileName($match.RelativePath))
@@ -178,11 +147,11 @@ if ($ReferenceCheck) {
 }
 
 if (-not $Delete) {
-    Write-Host "`nDry run complete. No files were deleted."
+    Write-Host "\nDry run complete. No files were deleted."
     return
 }
 
-$confirmation = Read-Host "`nDelete ALL listed matches from FolderB? Type YES to continue"
+$confirmation = Read-Host "\nDelete ALL listed matches from FolderB? Type YES to continue"
 if ($confirmation -cne 'YES') {
     Write-Host 'Deletion cancelled.'
     return

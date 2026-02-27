@@ -16,8 +16,6 @@ If a file exists in both folders at the same relative path, it is a match.
 - Windows: PowerShell 5.1+ or PowerShell 7+
 - macOS / Linux: PowerShell 7+ (`pwsh`)
 
-> PowerShell 5.1 compatibility is included for relative-path handling (no dependency on `[System.IO.Path]::GetRelativePath` being available).
-
 ## Interactive CLI mode (default)
 
 Run the script with no arguments and it will prompt for:
@@ -31,8 +29,6 @@ Run the script with no arguments and it will prompt for:
 ```powershell
 ./file-overlap-check-delete.ps1
 ```
-
-You can paste paths with or without quotes at prompts.
 
 ## Optional non-interactive usage
 
